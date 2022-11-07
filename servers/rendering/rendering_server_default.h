@@ -512,7 +512,7 @@ public:
 
 	FUNC1R(AABB, particles_get_current_aabb, RID)
 	FUNC2(particles_set_emission_transform, RID, const Transform3D &)
-	FUNC1RC(RID, particles_get_storage_buffer, RID)
+	FUNC1R(RID, particles_get_storage_buffer, RID)
 
 	/* PARTICLES COLLISION */
 

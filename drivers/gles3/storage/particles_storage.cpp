@@ -103,7 +103,7 @@ RID ParticlesStorage::particles_get_process_material(RID p_particles) const {
 	return RID();
 }
 
-RID ParticlesStorage::particles_get_storage_buffer(RID p_particles) const {
+RID ParticlesStorage::particles_get_storage_buffer(RID p_particles) {
 	return RID();
 }
 

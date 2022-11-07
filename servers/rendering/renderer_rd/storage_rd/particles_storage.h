@@ -428,7 +428,7 @@ public:
 	virtual void particles_set_use_local_coordinates(RID p_particles, bool p_enable) override;
 	virtual void particles_set_process_material(RID p_particles, RID p_material) override;
 	virtual RID particles_get_process_material(RID p_particles) const override;
-	virtual RID particles_get_storage_buffer(RID p_particles) const override;
+	virtual RID particles_get_storage_buffer(RID p_particles) override;
 
 	virtual void particles_set_fixed_fps(RID p_particles, int p_fps) override;
 	virtual void particles_set_interpolate(RID p_particles, bool p_enable) override;

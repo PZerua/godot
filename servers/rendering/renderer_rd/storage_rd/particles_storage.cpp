@@ -483,11 +483,13 @@ RID ParticlesStorage::particles_get_process_material(RID p_particles) const {
 	return particles->process_material;
 }
 
-RID ParticlesStorage::particles_get_storage_buffer(RID p_particles) const {
+RID ParticlesStorage::particles_get_storage_buffer(RID p_particles) {
 	Particles *particles = particles_owner.get_or_null(p_particles);
 	ERR_FAIL_COND_V(!particles, RID());
 
-	return particles->emission_storage_buffer;
+	_particles_update_buffers(particles);
+
+	return particles->particle_buffer;
 }
 
 void ParticlesStorage::particles_set_draw_order(RID p_particles, RS::ParticlesDrawOrder p_order) {
