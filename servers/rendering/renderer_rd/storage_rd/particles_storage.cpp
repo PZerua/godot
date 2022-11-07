@@ -483,6 +483,13 @@ RID ParticlesStorage::particles_get_process_material(RID p_particles) const {
 	return particles->process_material;
 }
 
+RID ParticlesStorage::particles_get_storage_buffer(RID p_particles) const {
+	Particles *particles = particles_owner.get_or_null(p_particles);
+	ERR_FAIL_COND_V(!particles, RID());
+
+	return particles->emission_storage_buffer;
+}
+
 void ParticlesStorage::particles_set_draw_order(RID p_particles, RS::ParticlesDrawOrder p_order) {
 	Particles *particles = particles_owner.get_or_null(p_particles);
 	ERR_FAIL_COND(!particles);
@@ -1037,7 +1044,7 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 	if (p_particles->trails_enabled && p_particles->trail_bind_poses.size() > 1) {
 		process_amount *= p_particles->trail_bind_poses.size();
 	}
-	push_constant.clear = p_particles->clear;
+	push_constant.clear = false;
 	push_constant.total_particles = p_particles->amount;
 	push_constant.lifetime = p_particles->lifetime;
 	push_constant.trail_size = p_particles->trail_params.size();
@@ -1070,7 +1077,7 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 	}
 
 	if (p_particles->emission_buffer && p_particles->emission_buffer->particle_count) {
-		RD::get_singleton()->buffer_update(p_particles->emission_storage_buffer, 0, sizeof(uint32_t) * 4 + sizeof(ParticleEmissionBuffer::Data) * p_particles->emission_buffer->particle_count, p_particles->emission_buffer);
+		//RD::get_singleton()->buffer_update(p_particles->emission_storage_buffer, 0, sizeof(uint32_t) * 4 + sizeof(ParticleEmissionBuffer::Data) * p_particles->emission_buffer->particle_count, p_particles->emission_buffer);
 		p_particles->emission_buffer->particle_count = 0;
 	}
 
@@ -1220,7 +1227,9 @@ void ParticlesStorage::particles_set_view_axis(RID p_particles, const Vector3 &p
 		RendererCompositorRD::singleton->get_effects()->sort_buffer(particles->particles_sort_uniform_set, particles->amount);
 	}
 
-	copy_push_constant.total_particles *= copy_push_constant.total_particles;
+	if (particles->trails_enabled && particles->trail_bind_poses.size() > 1) {
+		copy_push_constant.total_particles *= particles->trail_bind_poses.size();
+	}
 
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 	uint32_t copy_pipeline = do_sort ? ParticlesShader::COPY_MODE_FILL_INSTANCES_WITH_SORT_BUFFER : ParticlesShader::COPY_MODE_FILL_INSTANCES;

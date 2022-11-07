@@ -6128,6 +6128,13 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 						"Uniform buffer supplied (binding: " + itos(uniform.binding) + ") must provide one ID (" + itos(uniform.get_id_count()) + " provided).");
 
 				Buffer *buffer = uniform_buffer_owner.get_or_null(uniform.get_id(0));
+
+				if (!buffer) {
+					RID id = uniform.get_id(0);
+					uniform_buffer_owner.get_or_null(id);
+					print_line("wtfff");
+				}
+
 				ERR_FAIL_COND_V_MSG(!buffer, RID(), "Uniform buffer supplied (binding: " + itos(uniform.binding) + ") is invalid.");
 
 				ERR_FAIL_COND_V_MSG(buffer->size != (uint32_t)set_uniform.length, RID(),
