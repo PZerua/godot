@@ -52,6 +52,12 @@ void GPUParticles3D::set_amount(int p_amount) {
 	RS::get_singleton()->particles_set_amount(particles, amount);
 }
 
+void GPUParticles3D::set_render_amount(int p_amount) {
+	ERR_FAIL_COND_MSG(p_amount < 1, "Amount of particles cannot be smaller than 1.");
+	render_amount = p_amount;
+	RS::get_singleton()->particles_set_render_amount(particles, render_amount);
+}
+
 void GPUParticles3D::set_lifetime(double p_lifetime) {
 	ERR_FAIL_COND_MSG(p_lifetime <= 0, "Particles lifetime must be greater than 0.");
 	lifetime = p_lifetime;
@@ -500,6 +506,7 @@ GPUParticles3D::TransformAlign GPUParticles3D::get_transform_align() const {
 void GPUParticles3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emitting", "emitting"), &GPUParticles3D::set_emitting);
 	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &GPUParticles3D::set_amount);
+	ClassDB::bind_method(D_METHOD("set_render_amount", "render_amount"), &GPUParticles3D::set_render_amount);
 	ClassDB::bind_method(D_METHOD("set_lifetime", "secs"), &GPUParticles3D::set_lifetime);
 	ClassDB::bind_method(D_METHOD("set_one_shot", "enable"), &GPUParticles3D::set_one_shot);
 	ClassDB::bind_method(D_METHOD("set_pre_process_time", "secs"), &GPUParticles3D::set_pre_process_time);
@@ -563,6 +570,7 @@ void GPUParticles3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "emitting"), "set_emitting", "is_emitting");
 	ADD_PROPERTY_DEFAULT("emitting", true); // Workaround for doctool in headless mode, as dummy rasterizer always returns false.
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "amount", PROPERTY_HINT_RANGE, "1,1000000,1,exp"), "set_amount", "get_amount");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "render_amount", PROPERTY_HINT_RANGE, "1,1000000,1,exp"), "set_render_amount", "get_render_amount");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "sub_emitter", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "GPUParticles3D"), "set_sub_emitter", "get_sub_emitter");
 	ADD_GROUP("Time", "");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "lifetime", PROPERTY_HINT_RANGE, "0.01,600.0,0.01,or_greater,exp,suffix:s"), "set_lifetime", "get_lifetime");

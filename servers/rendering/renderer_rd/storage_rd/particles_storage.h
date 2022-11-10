@@ -153,6 +153,7 @@ private:
 		bool emitting = false;
 		bool one_shot = false;
 		int amount = 0;
+		int render_amount = 0;
 		double lifetime = 1.0;
 		double pre_process_time = 0.0;
 		real_t explosiveness = 0.0;
@@ -418,6 +419,7 @@ public:
 	virtual void particles_set_mode(RID p_particles, RS::ParticlesMode p_mode) override;
 	virtual void particles_set_emitting(RID p_particles, bool p_emitting) override;
 	virtual void particles_set_amount(RID p_particles, int p_amount) override;
+	virtual void particles_set_render_amount(RID p_particles, int p_amount) override;
 	virtual void particles_set_lifetime(RID p_particles, double p_lifetime) override;
 	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot) override;
 	virtual void particles_set_pre_process_time(RID p_particles, double p_time) override;
@@ -479,7 +481,7 @@ public:
 			r_trail_divisor = 1;
 		}
 
-		return particles->amount * r_trail_divisor;
+		return particles->render_amount;
 	}
 
 	_FORCE_INLINE_ bool particles_has_collision(RID p_particles) {

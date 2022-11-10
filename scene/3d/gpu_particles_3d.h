@@ -62,6 +62,7 @@ private:
 
 	bool one_shot;
 	int amount = 0;
+	int render_amount = 0;
 	double lifetime = 0.0;
 	double pre_process_time = 0.0;
 	real_t explosiveness_ratio = 0.0;
@@ -101,6 +102,7 @@ public:
 
 	void set_emitting(bool p_emitting);
 	void set_amount(int p_amount);
+	void set_render_amount(int p_amount);
 	void set_lifetime(double p_lifetime);
 	void set_one_shot(bool p_one_shot);
 	void set_pre_process_time(double p_time);

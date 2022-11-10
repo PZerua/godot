@@ -60,6 +60,7 @@ public:
 	virtual void particles_emit(RID p_particles, const Transform3D &p_transform, const Vector3 &p_velocity, const Color &p_color, const Color &p_custom, uint32_t p_emit_flags) override;
 	virtual void particles_set_emitting(RID p_particles, bool p_emitting) override;
 	virtual void particles_set_amount(RID p_particles, int p_amount) override;
+	virtual void particles_set_render_amount(RID p_particles, int p_amount) override;
 	virtual void particles_set_lifetime(RID p_particles, double p_lifetime) override;
 	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot) override;
 	virtual void particles_set_pre_process_time(RID p_particles, double p_time) override;

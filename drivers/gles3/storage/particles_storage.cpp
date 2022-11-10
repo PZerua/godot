@@ -72,6 +72,9 @@ void ParticlesStorage::particles_set_emitting(RID p_particles, bool p_emitting) 
 void ParticlesStorage::particles_set_amount(RID p_particles, int p_amount) {
 }
 
+void ParticlesStorage::particles_set_render_amount(RID p_particles, int p_amount) {
+}
+
 void ParticlesStorage::particles_set_lifetime(RID p_particles, double p_lifetime) {
 }
 
