@@ -118,6 +118,7 @@ public:
 
 	bool is_emitting() const;
 	int get_amount() const;
+	int get_render_amount() const;
 	double get_lifetime() const;
 	bool get_one_shot() const;
 	double get_pre_process_time() const;

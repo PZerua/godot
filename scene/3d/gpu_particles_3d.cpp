@@ -135,6 +135,10 @@ int GPUParticles3D::get_amount() const {
 	return amount;
 }
 
+int GPUParticles3D::get_render_amount() const {
+	return render_amount;
+}
+
 double GPUParticles3D::get_lifetime() const {
 	return lifetime;
 }
@@ -523,6 +527,7 @@ void GPUParticles3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("is_emitting"), &GPUParticles3D::is_emitting);
 	ClassDB::bind_method(D_METHOD("get_amount"), &GPUParticles3D::get_amount);
+	ClassDB::bind_method(D_METHOD("get_render_amount"), &GPUParticles3D::get_render_amount);
 	ClassDB::bind_method(D_METHOD("get_lifetime"), &GPUParticles3D::get_lifetime);
 	ClassDB::bind_method(D_METHOD("get_one_shot"), &GPUParticles3D::get_one_shot);
 	ClassDB::bind_method(D_METHOD("get_pre_process_time"), &GPUParticles3D::get_pre_process_time);

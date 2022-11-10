@@ -481,7 +481,7 @@ public:
 			r_trail_divisor = 1;
 		}
 
-		return particles->render_amount;
+		return particles->amount * r_trail_divisor;
 	}
 
 	_FORCE_INLINE_ bool particles_has_collision(RID p_particles) {
