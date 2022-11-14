@@ -53,7 +53,7 @@ void GPUParticles3D::set_amount(int p_amount) {
 }
 
 void GPUParticles3D::set_render_amount(int p_amount) {
-	ERR_FAIL_COND_MSG(p_amount < 1, "Amount of particles cannot be smaller than 1.");
+	//ERR_FAIL_COND_MSG(p_amount < 1, "Amount of particles cannot be smaller than 1.");
 	render_amount = p_amount;
 	RS::get_singleton()->particles_set_render_amount(particles, render_amount);
 }

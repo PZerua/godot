@@ -475,13 +475,13 @@ public:
 		Particles *particles = particles_owner.get_or_null(p_particles);
 		ERR_FAIL_COND_V(!particles, 0);
 
-		if (particles->trails_enabled && particles->trail_bind_poses.size() > 1) {
-			r_trail_divisor = particles->trail_bind_poses.size();
-		} else {
-			r_trail_divisor = 1;
-		}
+		//if (particles->trails_enabled && particles->trail_bind_poses.size() > 1) {
+		//	r_trail_divisor = particles->trail_bind_poses.size();
+		//} else {
+		//	r_trail_divisor = 1;
+		//}
 
-		return particles->amount * r_trail_divisor;
+		return particles->render_amount;
 	}
 
 	_FORCE_INLINE_ bool particles_has_collision(RID p_particles) {

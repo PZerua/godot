@@ -343,6 +343,8 @@ void ParticlesStorage::particles_set_render_amount(RID p_particles, int p_amount
 	Particles *particles = particles_owner.get_or_null(p_particles);
 	ERR_FAIL_COND(!particles);
 	particles->render_amount = p_amount;
+
+	particles->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_PARTICLES);
 }
 
 void ParticlesStorage::particles_set_lifetime(RID p_particles, double p_lifetime) {
