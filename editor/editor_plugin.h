@@ -32,32 +32,34 @@
 #define EDITOR_PLUGIN_H
 
 #include "core/io/config_file.h"
-#include "editor/debugger/editor_debugger_node.h"
-#include "editor/editor_inspector.h"
-#include "editor/editor_translation_parser.h"
-#include "editor/import/editor_import_plugin.h"
-#include "editor/import/resource_importer_scene.h"
-#include "editor/script_create_dialog.h"
 #include "scene/3d/camera_3d.h"
-#include "scene/main/node.h"
-#include "scene/resources/texture.h"
+#include "scene/gui/control.h"
 
 class Node3D;
-class Camera3D;
+class Button;
+class PopupMenu;
 class EditorCommandPalette;
-class EditorSelection;
+class EditorDebuggerPlugin;
 class EditorExport;
-class EditorSettings;
-class EditorImportPlugin;
 class EditorExportPlugin;
-class EditorNode3DGizmoPlugin;
-class EditorResourcePreview;
-class EditorUndoRedoManager;
 class EditorFileSystem;
-class EditorToolAddons;
+class EditorImportPlugin;
+class EditorInspector;
+class EditorInspectorPlugin;
+class EditorNode3DGizmoPlugin;
 class EditorPaths;
+class EditorResourcePreview;
+class EditorSceneFormatImporter;
+class EditorScenePostImportPlugin;
+class EditorSelection;
+class EditorSettings;
+class EditorToolAddons;
+class EditorTranslationParserPlugin;
+class EditorUndoRedoManager;
 class FileSystemDock;
+class ScriptCreateDialog;
 class ScriptEditor;
+class VBoxContainer;
 
 class EditorInterface : public Node {
 	GDCLASS(EditorInterface, Node);
@@ -301,8 +303,8 @@ public:
 	void add_autoload_singleton(const String &p_name, const String &p_path);
 	void remove_autoload_singleton(const String &p_name);
 
-	void add_debugger_plugin(const Ref<Script> &p_script);
-	void remove_debugger_plugin(const Ref<Script> &p_script);
+	void add_debugger_plugin(const Ref<EditorDebuggerPlugin> &p_plugin);
+	void remove_debugger_plugin(const Ref<EditorDebuggerPlugin> &p_plugin);
 
 	void enable_plugin();
 	void disable_plugin();

@@ -30,15 +30,20 @@
 
 #include "editor_plugin.h"
 
+#include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_node.h"
 #include "editor/editor_paths.h"
 #include "editor/editor_resource_preview.h"
 #include "editor/editor_settings.h"
+#include "editor/editor_translation_parser.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/export/editor_export.h"
 #include "editor/filesystem_dock.h"
+#include "editor/import/editor_import_plugin.h"
+#include "editor/import/resource_importer_scene.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
+#include "editor/plugins/editor_debugger_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/project_settings_editor.h"
@@ -837,12 +842,12 @@ ScriptCreateDialog *EditorPlugin::get_script_create_dialog() {
 	return SceneTreeDock::get_singleton()->get_script_create_dialog();
 }
 
-void EditorPlugin::add_debugger_plugin(const Ref<Script> &p_script) {
-	EditorDebuggerNode::get_singleton()->add_debugger_plugin(p_script);
+void EditorPlugin::add_debugger_plugin(const Ref<EditorDebuggerPlugin> &p_plugin) {
+	EditorDebuggerNode::get_singleton()->add_debugger_plugin(p_plugin);
 }
 
-void EditorPlugin::remove_debugger_plugin(const Ref<Script> &p_script) {
-	EditorDebuggerNode::get_singleton()->remove_debugger_plugin(p_script);
+void EditorPlugin::remove_debugger_plugin(const Ref<EditorDebuggerPlugin> &p_plugin) {
+	EditorDebuggerNode::get_singleton()->remove_debugger_plugin(p_plugin);
 }
 
 void EditorPlugin::_editor_project_settings_changed() {
