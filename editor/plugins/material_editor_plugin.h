@@ -41,12 +41,14 @@
 #include "scene/resources/material.h"
 #include "scene/resources/primitive_meshes.h"
 
+class SubViewport;
 class SubViewportContainer;
+class TextureButton;
 
 class MaterialEditor : public Control {
 	GDCLASS(MaterialEditor, Control);
 
-	Vector2 rot = Vector2();
+	Vector2 rot;
 
 	HBoxContainer *layout_2d = nullptr;
 	ColorRect *rect_instance = nullptr;

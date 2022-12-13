@@ -161,6 +161,18 @@ bool CharString::operator<(const CharString &p_right) const {
 	return is_str_less(get_data(), p_right.get_data());
 }
 
+bool CharString::operator==(const CharString &p_right) const {
+	if (length() == 0) {
+		// True if both have length 0, false if only p_right has a length
+		return p_right.length() == 0;
+	} else if (p_right.length() == 0) {
+		// False due to unequal length
+		return false;
+	}
+
+	return strcmp(ptr(), p_right.ptr()) == 0;
+}
+
 CharString &CharString::operator+=(char p_char) {
 	const int lhs_len = length();
 	resize(lhs_len + 2);
@@ -1256,8 +1268,8 @@ Vector<String> String::rsplit(const String &p_splitter, bool p_allow_empty, int 
 	return ret;
 }
 
-Vector<float> String::split_floats(const String &p_splitter, bool p_allow_empty) const {
-	Vector<float> ret;
+Vector<double> String::split_floats(const String &p_splitter, bool p_allow_empty) const {
+	Vector<double> ret;
 	int from = 0;
 	int len = length();
 
@@ -2839,7 +2851,7 @@ String String::substr(int p_from, int p_chars) const {
 		return String(*this);
 	}
 
-	String s = String();
+	String s;
 	s.copy_from_unchecked(&get_data()[p_from], p_chars);
 	return s;
 }
@@ -3922,7 +3934,6 @@ String String::c_unescape() const {
 	escaped = escaped.replace("\\v", "\v");
 	escaped = escaped.replace("\\'", "\'");
 	escaped = escaped.replace("\\\"", "\"");
-	escaped = escaped.replace("\\?", "\?");
 	escaped = escaped.replace("\\\\", "\\");
 
 	return escaped;
@@ -3939,7 +3950,6 @@ String String::c_escape() const {
 	escaped = escaped.replace("\t", "\\t");
 	escaped = escaped.replace("\v", "\\v");
 	escaped = escaped.replace("\'", "\\'");
-	escaped = escaped.replace("\?", "\\?");
 	escaped = escaped.replace("\"", "\\\"");
 
 	return escaped;
