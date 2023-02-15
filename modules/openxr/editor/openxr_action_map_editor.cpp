@@ -1,32 +1,32 @@
-/*************************************************************************/
-/*  openxr_action_map_editor.cpp                                         */
-/*************************************************************************/
-/*                       This file is part of:                           */
-/*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
-/*************************************************************************/
-/* Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2022 Godot Engine contributors (cf. AUTHORS.md).   */
-/*                                                                       */
-/* Permission is hereby granted, free of charge, to any person obtaining */
-/* a copy of this software and associated documentation files (the       */
-/* "Software"), to deal in the Software without restriction, including   */
-/* without limitation the rights to use, copy, modify, merge, publish,   */
-/* distribute, sublicense, and/or sell copies of the Software, and to    */
-/* permit persons to whom the Software is furnished to do so, subject to */
-/* the following conditions:                                             */
-/*                                                                       */
-/* The above copyright notice and this permission notice shall be        */
-/* included in all copies or substantial portions of the Software.       */
-/*                                                                       */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
-/*************************************************************************/
+/**************************************************************************/
+/*  openxr_action_map_editor.cpp                                          */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
 
 #include "openxr_action_map_editor.h"
 
@@ -57,7 +57,7 @@ void OpenXRActionMapEditor::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			for (int i = 0; i < tabs->get_child_count(); i++) {
-				Control *tab = static_cast<Control *>(tabs->get_child(i));
+				Control *tab = Object::cast_to<Control>(tabs->get_child(i));
 				if (tab) {
 					tab->add_theme_style_override("panel", get_theme_stylebox(SNAME("panel"), SNAME("Tree")));
 				}
@@ -205,11 +205,12 @@ void OpenXRActionMapEditor::_on_remove_action_set(Object *p_action_set_editor) {
 	action_map->set_edited(true);
 }
 
-void OpenXRActionMapEditor::_on_action_removed() {
+void OpenXRActionMapEditor::_on_action_removed(Ref<OpenXRAction> p_action) {
 	for (int i = 0; i < tabs->get_tab_count(); i++) {
 		// First tab won't be an interaction profile editor, but being thorough..
-		OpenXRInteractionProfileEditorBase *interaction_profile_editor = static_cast<OpenXRInteractionProfileEditorBase *>(tabs->get_tab_control(i));
+		OpenXRInteractionProfileEditorBase *interaction_profile_editor = Object::cast_to<OpenXRInteractionProfileEditorBase>(tabs->get_tab_control(i));
 		if (interaction_profile_editor) {
+			interaction_profile_editor->remove_all_bindings_for_action(p_action);
 		}
 	}
 }
@@ -309,7 +310,7 @@ void OpenXRActionMapEditor::_on_tabs_tab_changed(int p_tab) {
 }
 
 void OpenXRActionMapEditor::_on_tab_button_pressed(int p_tab) {
-	OpenXRInteractionProfileEditorBase *interaction_profile_editor = static_cast<OpenXRInteractionProfileEditorBase *>(tabs->get_tab_control(p_tab));
+	OpenXRInteractionProfileEditorBase *interaction_profile_editor = Object::cast_to<OpenXRInteractionProfileEditorBase>(tabs->get_tab_control(p_tab));
 	ERR_FAIL_NULL(interaction_profile_editor);
 
 	undo_redo->create_action(TTR("Remove interaction profile"));
@@ -375,9 +376,9 @@ void OpenXRActionMapEditor::_clear_action_map() {
 		child->queue_free();
 	}
 
-	for (int i = 0; i < tabs->get_tab_count(); i++) {
+	for (int i = tabs->get_tab_count() - 1; i >= 0; --i) {
 		// First tab won't be an interaction profile editor, but being thorough..
-		OpenXRInteractionProfileEditorBase *interaction_profile_editor = static_cast<OpenXRInteractionProfileEditorBase *>(tabs->get_tab_control(i));
+		OpenXRInteractionProfileEditorBase *interaction_profile_editor = Object::cast_to<OpenXRInteractionProfileEditorBase>(tabs->get_tab_control(i));
 		if (interaction_profile_editor) {
 			tabs->remove_child(interaction_profile_editor);
 			interaction_profile_editor->queue_free();
@@ -386,7 +387,7 @@ void OpenXRActionMapEditor::_clear_action_map() {
 }
 
 OpenXRActionMapEditor::OpenXRActionMapEditor() {
-	undo_redo = EditorNode::get_undo_redo();
+	undo_redo = EditorUndoRedoManager::get_singleton();
 	set_custom_minimum_size(Size2(0.0, 300.0));
 
 	top_hb = memnew(HBoxContainer);

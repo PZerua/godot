@@ -1,32 +1,32 @@
-/*************************************************************************/
-/*  texture_storage.cpp                                                  */
-/*************************************************************************/
-/*                       This file is part of:                           */
-/*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
-/*************************************************************************/
-/* Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2022 Godot Engine contributors (cf. AUTHORS.md).   */
-/*                                                                       */
-/* Permission is hereby granted, free of charge, to any person obtaining */
-/* a copy of this software and associated documentation files (the       */
-/* "Software"), to deal in the Software without restriction, including   */
-/* without limitation the rights to use, copy, modify, merge, publish,   */
-/* distribute, sublicense, and/or sell copies of the Software, and to    */
-/* permit persons to whom the Software is furnished to do so, subject to */
-/* the following conditions:                                             */
-/*                                                                       */
-/* The above copyright notice and this permission notice shall be        */
-/* included in all copies or substantial portions of the Software.       */
-/*                                                                       */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
-/*************************************************************************/
+/**************************************************************************/
+/*  texture_storage.cpp                                                   */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
 
 #include "texture_storage.h"
 
@@ -419,11 +419,11 @@ TextureStorage::TextureStorage() {
 		tformat.format = RD::DATA_FORMAT_R8_UINT;
 		tformat.width = 4;
 		tformat.height = 4;
-		tformat.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT;
-		if (RD::get_singleton()->has_feature(RD::SUPPORTS_ATTACHMENT_VRS)) {
-			tformat.usage_bits |= RD::TEXTURE_USAGE_VRS_ATTACHMENT_BIT;
-		}
+		tformat.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_VRS_ATTACHMENT_BIT;
 		tformat.texture_type = RD::TEXTURE_TYPE_2D;
+		if (!RD::get_singleton()->has_feature(RD::SUPPORTS_ATTACHMENT_VRS)) {
+			tformat.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT;
+		}
 
 		Vector<uint8_t> pv;
 		pv.resize(4 * 4);
@@ -581,6 +581,9 @@ bool TextureStorage::canvas_texture_get_uniform_set(RID p_texture, RS::CanvasIte
 		}
 
 		ct = t->canvas_texture;
+		if (t->render_target) {
+			t->render_target->was_used = true;
+		}
 	} else {
 		ct = canvas_texture_owner.get_or_null(p_texture);
 	}
@@ -611,6 +614,9 @@ bool TextureStorage::canvas_texture_get_uniform_set(RID p_texture, RS::CanvasIte
 			} else {
 				u.append_id(t->rd_texture);
 				ct->size_cache = Size2i(t->width_2d, t->height_2d);
+				if (t->render_target) {
+					t->render_target->was_used = true;
+				}
 			}
 			uniforms.push_back(u);
 		}
@@ -626,6 +632,9 @@ bool TextureStorage::canvas_texture_get_uniform_set(RID p_texture, RS::CanvasIte
 			} else {
 				u.append_id(t->rd_texture);
 				ct->use_normal_cache = true;
+				if (t->render_target) {
+					t->render_target->was_used = true;
+				}
 			}
 			uniforms.push_back(u);
 		}
@@ -641,6 +650,9 @@ bool TextureStorage::canvas_texture_get_uniform_set(RID p_texture, RS::CanvasIte
 			} else {
 				u.append_id(t->rd_texture);
 				ct->use_specular_cache = true;
+				if (t->render_target) {
+					t->render_target->was_used = true;
+				}
 			}
 			uniforms.push_back(u);
 		}
@@ -1764,6 +1776,46 @@ Ref<Image> TextureStorage::_validate_texture_format(const Ref<Image> &p_image, T
 			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_ZERO;
 			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_ONE;
 		} break;
+		case Image::FORMAT_ASTC_4x4:
+		case Image::FORMAT_ASTC_4x4_HDR: {
+			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_4x4_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
+				r_format.format = RD::DATA_FORMAT_ASTC_4x4_UNORM_BLOCK;
+				if (p_image->get_format() == Image::FORMAT_ASTC_4x4) {
+					r_format.format_srgb = RD::DATA_FORMAT_ASTC_4x4_SRGB_BLOCK;
+				}
+			} else {
+				//not supported, reconvert
+				r_format.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
+				r_format.format_srgb = RD::DATA_FORMAT_R8G8B8A8_SRGB;
+				image->decompress();
+				image->convert(Image::FORMAT_RGBA8);
+			}
+			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
+			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
+			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
+			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
+
+		} break; // astc 4x4
+		case Image::FORMAT_ASTC_8x8:
+		case Image::FORMAT_ASTC_8x8_HDR: {
+			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_8x8_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
+				r_format.format = RD::DATA_FORMAT_ASTC_8x8_UNORM_BLOCK;
+				if (p_image->get_format() == Image::FORMAT_ASTC_8x8) {
+					r_format.format_srgb = RD::DATA_FORMAT_ASTC_8x8_SRGB_BLOCK;
+				}
+			} else {
+				//not supported, reconvert
+				r_format.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
+				r_format.format_srgb = RD::DATA_FORMAT_R8G8B8A8_SRGB;
+				image->decompress();
+				image->convert(Image::FORMAT_RGBA8);
+			}
+			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
+			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
+			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
+			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
+
+		} break; // astc 8x8
 
 		default: {
 		}
@@ -1801,10 +1853,10 @@ void TextureStorage::decal_free(RID p_rid) {
 	decal_owner.free(p_rid);
 }
 
-void TextureStorage::decal_set_extents(RID p_decal, const Vector3 &p_extents) {
+void TextureStorage::decal_set_size(RID p_decal, const Vector3 &p_size) {
 	Decal *decal = decal_owner.get_or_null(p_decal);
 	ERR_FAIL_COND(!decal);
-	decal->extents = p_extents;
+	decal->size = p_size;
 	decal->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
 }
 
@@ -1854,7 +1906,7 @@ void TextureStorage::decal_set_cull_mask(RID p_decal, uint32_t p_layers) {
 	Decal *decal = decal_owner.get_or_null(p_decal);
 	ERR_FAIL_COND(!decal);
 	decal->cull_mask = p_layers;
-	decal->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
+	decal->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_DECAL);
 }
 
 void TextureStorage::decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length) {
@@ -1897,7 +1949,14 @@ AABB TextureStorage::decal_get_aabb(RID p_decal) const {
 	Decal *decal = decal_owner.get_or_null(p_decal);
 	ERR_FAIL_COND_V(!decal, AABB());
 
-	return AABB(-decal->extents, decal->extents * 2.0);
+	return AABB(-decal->size / 2, decal->size);
+}
+
+uint32_t TextureStorage::decal_get_cull_mask(RID p_decal) const {
+	Decal *decal = decal_owner.get_or_null(p_decal);
+	ERR_FAIL_COND_V(!decal, 0);
+
+	return decal->cull_mask;
 }
 
 Dependency *TextureStorage::decal_get_dependency(RID p_decal) {
@@ -2153,6 +2212,12 @@ void TextureStorage::decal_instance_set_transform(RID p_decal_instance, const Tr
 	di->transform = p_transform;
 }
 
+void TextureStorage::decal_instance_set_sorting_offset(RID p_decal_instance, float p_sorting_offset) {
+	DecalInstance *di = decal_instance_owner.get_or_null(p_decal_instance);
+	ERR_FAIL_COND(!di);
+	di->sorting_offset = p_sorting_offset;
+}
+
 /* DECAL DATA API */
 
 void TextureStorage::free_decal_data() {
@@ -2180,7 +2245,7 @@ void TextureStorage::set_max_decals(const uint32_t p_max_decals) {
 	decal_buffer = RD::get_singleton()->storage_buffer_create(decal_buffer_size);
 }
 
-void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const Transform3D &p_camera_inverse_xform) {
+void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const Transform3D &p_camera_xform) {
 	ForwardIDStorage *forward_id_storage = ForwardIDStorage::get_singleton();
 
 	Transform3D uv_xform;
@@ -2204,7 +2269,7 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 
 		Transform3D xform = decal_instance->transform;
 
-		real_t distance = -p_camera_inverse_xform.xform(xform.origin).z;
+		real_t distance = p_camera_xform.origin.distance_to(xform.origin);
 
 		if (decal->distance_fade) {
 			float fade_begin = decal->distance_fade_begin;
@@ -2219,7 +2284,7 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 
 		decal_sort[decal_count].decal_instance = decal_instance;
 		decal_sort[decal_count].decal = decal;
-		decal_sort[decal_count].depth = distance;
+		decal_sort[decal_count].depth = distance - decal_instance->sorting_offset;
 		decal_count++;
 	}
 
@@ -2239,11 +2304,10 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 
 		decal_instance->cull_mask = decal->cull_mask;
 
-		Transform3D xform = decal_instance->transform;
 		float fade = 1.0;
 
 		if (decal->distance_fade) {
-			const real_t distance = -p_camera_inverse_xform.xform(xform.origin).z;
+			const real_t distance = decal_sort[i].depth + decal_instance->sorting_offset;
 			const float fade_begin = decal->distance_fade_begin;
 			const float fade_length = decal->distance_fade_length;
 
@@ -2255,15 +2319,20 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 
 		DecalData &dd = decals[i];
 
-		Vector3 decal_extents = decal->extents;
+		Vector3 decal_extents = decal->size / 2;
 
 		Transform3D scale_xform;
 		scale_xform.basis.scale(decal_extents);
-		Transform3D to_decal_xform = (p_camera_inverse_xform * xform * scale_xform * uv_xform).affine_inverse();
+
+		Transform3D xform = decal_instance->transform;
+
+		Transform3D camera_inverse_xform = p_camera_xform.affine_inverse();
+
+		Transform3D to_decal_xform = (camera_inverse_xform * xform * scale_xform * uv_xform).affine_inverse();
 		MaterialStorage::store_transform(to_decal_xform, dd.xform);
 
 		Vector3 normal = xform.basis.get_column(Vector3::AXIS_Y).normalized();
-		normal = p_camera_inverse_xform.basis.xform(normal); //camera is normalized, so fine
+		normal = camera_inverse_xform.basis.xform(normal); //camera is normalized, so fine
 
 		dd.normal[0] = normal.x;
 		dd.normal[1] = normal.y;
@@ -2297,7 +2366,7 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 			dd.normal_rect[2] = rect.size.x;
 			dd.normal_rect[3] = rect.size.y;
 
-			Basis normal_xform = p_camera_inverse_xform.basis * xform.basis.orthonormalized();
+			Basis normal_xform = camera_inverse_xform.basis * xform.basis.orthonormalized();
 			MaterialStorage::store_basis_3x4(normal_xform, dd.normal_xform);
 		} else {
 			dd.normal_rect[0] = 0;
@@ -2398,6 +2467,10 @@ void TextureStorage::_clear_render_target(RenderTarget *rt) {
 
 	rt->color = RID();
 	rt->color_multisample = RID();
+	if (rt->texture.is_valid()) {
+		Texture *tex = get_texture(rt->texture);
+		tex->render_target = nullptr;
+	}
 }
 
 void TextureStorage::_update_render_target(RenderTarget *rt) {
@@ -2478,6 +2551,7 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 
 		tex->rd_texture = RID();
 		tex->rd_texture_srgb = RID();
+		tex->render_target = rt;
 
 		//create shared textures to the color buffer,
 		//so transparent can be supported
@@ -3140,13 +3214,13 @@ void TextureStorage::render_target_copy_to_back_buffer(RID p_render_target, cons
 		region.position.y >>= 1;
 		region.size.x = MAX(1, region.size.x >> 1);
 		region.size.y = MAX(1, region.size.y >> 1);
+		texture_size.x = MAX(1, texture_size.x >> 1);
+		texture_size.y = MAX(1, texture_size.y >> 1);
 
 		RID mipmap = rt->backbuffer_mipmaps[i];
 		if (RendererSceneRenderRD::get_singleton()->_render_buffers_can_be_storage()) {
-			copy_effects->gaussian_blur(prev_texture, mipmap, region, true);
+			copy_effects->gaussian_blur(prev_texture, mipmap, region, texture_size, true);
 		} else {
-			texture_size.x = MAX(1, texture_size.x >> 1);
-			texture_size.y = MAX(1, texture_size.y >> 1);
 			copy_effects->gaussian_blur_raster(prev_texture, mipmap, region, texture_size);
 		}
 		prev_texture = mipmap;
@@ -3179,7 +3253,7 @@ void TextureStorage::render_target_clear_back_buffer(RID p_render_target, const 
 	if (RendererSceneRenderRD::get_singleton()->_render_buffers_can_be_storage()) {
 		copy_effects->set_color(rt->backbuffer_mipmap0, p_color, region, true);
 	} else {
-		copy_effects->set_color(rt->backbuffer_mipmap0, p_color, region, true);
+		copy_effects->set_color_raster(rt->backbuffer_mipmap0, p_color, region);
 	}
 }
 
@@ -3213,14 +3287,14 @@ void TextureStorage::render_target_gen_back_buffer_mipmaps(RID p_render_target, 
 		region.position.y >>= 1;
 		region.size.x = MAX(1, region.size.x >> 1);
 		region.size.y = MAX(1, region.size.y >> 1);
+		texture_size.x = MAX(1, texture_size.x >> 1);
+		texture_size.y = MAX(1, texture_size.y >> 1);
 
 		RID mipmap = rt->backbuffer_mipmaps[i];
 
 		if (RendererSceneRenderRD::get_singleton()->_render_buffers_can_be_storage()) {
-			copy_effects->gaussian_blur(prev_texture, mipmap, region, true);
+			copy_effects->gaussian_blur(prev_texture, mipmap, region, texture_size, true);
 		} else {
-			texture_size.x = MAX(1, texture_size.x >> 1);
-			texture_size.y = MAX(1, texture_size.y >> 1);
 			copy_effects->gaussian_blur_raster(prev_texture, mipmap, region, texture_size);
 		}
 		prev_texture = mipmap;
