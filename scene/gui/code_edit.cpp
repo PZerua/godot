@@ -896,6 +896,7 @@ void CodeEdit::indent_lines() {
 		set_caret_column(get_caret_column(c) + selection_offset, false, c);
 	}
 	end_complex_operation();
+	queue_redraw();
 }
 
 void CodeEdit::unindent_lines() {
@@ -973,6 +974,7 @@ void CodeEdit::unindent_lines() {
 		set_caret_column(initial_cursor_column - removed_characters, false, c);
 	}
 	end_complex_operation();
+	queue_redraw();
 }
 
 int CodeEdit::_calculate_spaces_till_next_left_indent(int p_column) const {
@@ -2923,6 +2925,12 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 
 	code_completion_options.clear();
 	code_completion_base = string_to_complete;
+
+	/* Don't autocomplete setting numerical values. */
+	if (code_completion_base.is_numeric()) {
+		cancel_code_completion();
+		return;
+	}
 
 	Vector<ScriptLanguage::CodeCompletionOption> completion_options_casei;
 	Vector<ScriptLanguage::CodeCompletionOption> completion_options_substr;
